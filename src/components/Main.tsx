@@ -17,24 +17,71 @@ interface InputDivProps {
 const Main: React.FC = () => {
     const [focused, setFocused] = useState<Boolean>(false);
     const [photos, setPhotos] = useState<Photo[]>([]);
-    const [error, setError] = useState<Boolean>(false)
-
-    const getData = async () => {
-        try {
-        //   const response = await axios.get(`https://api.unsplash.com/photos?per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`)
-          const newPhotos: Photo[] = response.data;
-          setPhotos(newPhotos);
-          setError(false)
+    const [error, setError] = useState<Boolean>(false);
+    const [searchWord, setSearchWord] = useState<string>('');
+    const [page, setPage] = useState<Number>(1);
+    const [finishedTyping, setFinishedTyping] = useState<Boolean>(false);
+    const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   
+const fetchPopular = async () => {
+    try {
+    const response = await axios.get(`https://api.unsplash.com/photos?page=${page}&per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`);
+      const newPhotos: Photo[] = response.data;
+      setPhotos(newPhotos);
+      setError(false)
+
+      console.log(newPhotos)
+
+    } catch (error) {
+      setError(true)
+      console.log(error)
+    }
+  }
+
+const fetchPhotosByWord = async (query: string) => {
+    try {
+        const response = await axios.get(`https://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
+            params: {
+              client_id: 'ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0',
+              query: query,
+            },
+          });
+
+        const newPhotos: Photo[] = response.data.results;
+        setPhotos(newPhotos);
+        setError(false)
+        console.log(newPhotos)
+            
         } catch (error) {
           setError(true)
           console.log(error)
         }
-      }
-  
-      useEffect(() => {
-          getData();
-      }, [])
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchWord(event.target.value);
+  };
+
+
+  useEffect(() => {
+    if (typingTimeout !== null) {
+      clearTimeout(typingTimeout);
+    }
+
+    if(!searchWord) {
+      fetchPopular();
+    }
+
+    setTypingTimeout(
+      setTimeout(() => {
+        if (searchWord) {
+          fetchPhotosByWord(searchWord);
+        }
+      }, 3000)
+    );
+
+    return () => clearTimeout(typingTimeout!);
+  }, [searchWord]);
 
 
     return (
@@ -42,6 +89,8 @@ const Main: React.FC = () => {
             <Header>
                 <InputDiv focused={focused}>
                     <SearchInput placeholder="ძებნა"
+                    value={searchWord}
+                    onChange={handleInputChange}
                     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}/>
                     <svg width='20' height='20' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg> 
                 </InputDiv>
@@ -184,4 +233,5 @@ const PageLink = styled.div`
         border: 2px solid #323334;
     }
 `
+
 
