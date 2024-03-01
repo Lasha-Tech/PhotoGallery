@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import Main from './components/Main';
+import History from './components/History';
 
 
 function App() {
