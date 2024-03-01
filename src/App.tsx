@@ -1,11 +1,11 @@
 import styled from 'styled-components';
-import Header from './components/Header';
+import Main from './components/Main';
 
 
 function App() {
   return (
     <AppDiv>
-      <Header/>
+      <Main/>
     </AppDiv>
   )
 }
@@ -18,4 +18,5 @@ const AppDiv = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 50px 0 80px;
 `

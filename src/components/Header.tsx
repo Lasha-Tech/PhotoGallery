@@ -5,7 +5,7 @@ interface InputDivProps {
     focused: Boolean;
 }
 
-const Header = () => {
+const Header: React.FC = () => {
     const [activePage, setActivePage] = useState<String>('Main')
     const [focused, setFocused] = useState<Boolean>(false);
 
@@ -32,11 +32,11 @@ const Header = () => {
 export default Header;
 
 const HeaderDiv = styled.div`
-    width: 70%;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 50px 0px;
+    margin-bottom: 80px;
 `
 
 const InputDiv = styled.div<InputDivProps>(
@@ -53,11 +53,11 @@ const InputDiv = styled.div<InputDivProps>(
         font-size: 18px;
         padding-right: 10px;
         border-radius: 4px;
-        transition: all .5s ease-in-out;
+        transition: all .3s ease-in-out;
         border: 3px solid ${focused? '#4b6781': 'transparent'};
 
         &:hover {
-            transition: all .5s ease-in-out;
+            transition: all .3s ease-in-out;
             background-color: ${focused? '#323334': '#4b6781'};
         }
     `
