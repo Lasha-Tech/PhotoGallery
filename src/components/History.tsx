@@ -1,6 +1,7 @@
 import styled, {css} from "styled-components";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 
 const History: React.FC = () => {
@@ -11,9 +12,11 @@ const History: React.FC = () => {
                     ბოლოს მოძებნილი: 
                 </SearchedWords>
 
-                <PageLink>
-                    მთავარი
-                </PageLink>
+                <Link to='/' style={{color: 'inherit', textDecoration: 'none'}}>
+                    <PageLink>
+                        მთავარი
+                    </PageLink>
+                </Link>
             </Header>
 
             <ImgContainer>

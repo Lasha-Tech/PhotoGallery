@@ -1,13 +1,26 @@
 import styled from 'styled-components';
 import Main from './components/Main';
 import History from './components/History';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 
 function App() {
   return (
-    <AppDiv>
-      <Main/>
-    </AppDiv>
+    <Router>
+      <AppDiv>
+        <Routes>
+          <Route
+              path="/"
+              element={<Main />}
+            />
+            <Route
+              path="/history"
+              element={<History />}
+            />
+        </Routes>
+      </AppDiv>
+    </Router>
+    
   )
 }
 
