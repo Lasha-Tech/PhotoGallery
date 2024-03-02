@@ -2,25 +2,28 @@ import styled from 'styled-components';
 import Main from './components/Main';
 import History from './components/History';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from 'react-query';
 
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <Router>
-      <AppDiv>
-        <Routes>
-          <Route
-              path="/"
-              element={<Main />}
-            />
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AppDiv>
+          <Routes>
             <Route
-              path="/history"
-              element={<History />}
-            />
-        </Routes>
-      </AppDiv>
-    </Router>
-    
+                path="/"
+                element={<Main />}
+              />
+              <Route
+                path="/history"
+                element={<History />}
+              />
+          </Routes>
+        </AppDiv>
+      </Router>
+    </QueryClientProvider>
   )
 }
 

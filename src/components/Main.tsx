@@ -1,95 +1,110 @@
-import styled, {css} from "styled-components";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import styled, {css} from 'styled-components';
+import { Link } from 'react-router-dom';
+import { useQueryClient, useQuery } from 'react-query';
 
 interface Photo {
-    id: string;
-    urls: {
-      regular: string;
-    };
-  }
-
+  id: string;
+  url: string;
+}
 interface InputDivProps {
-    focused: Boolean;
+  focused: Boolean;
 }
 
+interface UnsplashResponse {
+  results: Photo[];
+
+}
+
+type SearchedWords = string[];
+
+
 const Main: React.FC = () => {
-    const [focused, setFocused] = useState<Boolean>(false);
-    const [photos, setPhotos] = useState<Photo[]>([]);
-    const [error, setError] = useState<Boolean>(false);
-    const [searchWord, setSearchWord] = useState<string>('');
-    const [page, setPage] = useState<Number>(1);
-    const [finishedTyping, setFinishedTyping] = useState<Boolean>(false);
-    const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [focused, setFocused] = useState<Boolean>(false)
+  const [query, setQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const queryClient = useQueryClient();
   
-const fetchPopular = async () => {
-    try {
+  const fetchPopular = async (page: number) => {
     const response = await axios.get(`https://api.unsplash.com/photos?page=${page}&per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`);
-      const newPhotos: Photo[] = response.data;
-      setPhotos(newPhotos);
-      setError(false)
-
-      console.log(newPhotos)
-
-    } catch (error) {
-      setError(true)
-      console.log(error)
-    }
-  }
-
-const fetchPhotosByWord = async (query: string) => {
-    try {
-        const response = await axios.get(`https://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
-            params: {
-              client_id: 'ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0',
-              query: query,
-            },
-          });
-
-        const newPhotos: Photo[] = response.data.results;
-        setPhotos(newPhotos);
-        setError(false)
-        console.log(newPhotos)
-            
-        } catch (error) {
-          setError(true)
-          console.log(error)
-        }
+    return response.data;
   };
+  
+  const fetchPhotosByWord = async (query: string, page: number): Promise<Photo[]> => {
+    const response = await axios.get<UnsplashResponse>(`https://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
+      params: {
+        client_id: 'ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0',
+        query: query,
+      },
+    });
+    queryClient.setQueryData(['search', query, page], response.data.results);
+    return response.data.results;
+  };
+  
+  
+  const debounce = (func: Function, delay: number) => {
+    let timer: ReturnType<typeof setTimeout>;
+    return (...args: any) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  const delayedFetchPhotos = debounce((value: string) => {
+    setQuery(value);
+  }, 3000);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchWord(event.target.value);
+    const { value } = event.target;
+    delayedFetchPhotos(value);
   };
 
-
   useEffect(() => {
-    if (typingTimeout !== null) {
-      clearTimeout(typingTimeout);
+    setPage(1); // Reset page number when query changes
+  }, [query]);
+
+  const fetchPopularPhotos = async () => {
+    const cachedData = queryClient.getQueryData(['popular', page]);
+    if (cachedData) {
+      return cachedData;
+    } else {
+      const data = await fetchPopular(page);
+      queryClient.setQueryData(['popular', page], data);
+      return data;
     }
+  };
 
-    if(!searchWord) {
-      fetchPopular();
+  const fetchSearchedPhotos = async () => {
+    if (!query) return fetchPopularPhotos(); // If query is empty, fetch popular photos
+    const cachedData = queryClient.getQueryData(['search', query, page]);
+    if (cachedData) {
+      return cachedData;
+    } else {
+      const data = await fetchPhotosByWord(query, page);
+      // Save searched word in cache
+      const searchedWords = queryClient.getQueryData<SearchedWords>('searchedWords') || [];
+      if (!searchedWords.includes(query)) {
+        queryClient.setQueryData('searchedWords', [...searchedWords, query]);
+      }
+      queryClient.setQueryData(['search', query, page], data);
+      return data;
     }
+  };
+  
+  
+  const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
+  const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
-    setTypingTimeout(
-      setTimeout(() => {
-        if (searchWord) {
-          fetchPhotosByWord(searchWord);
-        }
-      }, 3000)
-    );
-
-    return () => clearTimeout(typingTimeout!);
-  }, [searchWord]);
-
+  console.log('Searched Words:', searchedWords);
 
     return (
         <MainDiv>
             <Header>
                 <InputDiv focused={focused}>
                     <SearchInput placeholder="ძებნა"
-                    value={searchWord}
                     onChange={handleInputChange}
                     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}/>
                     <svg width='20' height='20' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg> 
@@ -104,11 +119,11 @@ const fetchPhotosByWord = async (query: string) => {
             </Header>
 
             <ImgContainer>
-                {photos.map(photo => {
-                    return (
-                        <Img key={photo.id} src={photo.urls.regular}/>
-                    )
-                })}
+              {data && data.map((photo: Photo) => (
+              <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`} />
+              ))}
+              {isLoading && <Spinner/>}
+              {isError && <ErrorText>ფოტო ვერ მოიძებნა  :(</ErrorText>}
             </ImgContainer>
         </MainDiv>
     );
@@ -234,4 +249,9 @@ const PageLink = styled.div`
     }
 `
 
-
+const ErrorText = styled.p`
+  color: #C62828;
+  font-size: 30px;
+  font-weight: 600;
+  margin: 0 auto;
+`
