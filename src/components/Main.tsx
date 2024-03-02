@@ -25,7 +25,9 @@ const Main: React.FC = () => {
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const queryClient = useQueryClient();
-  
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+
   const fetchPopular = async (page: number) => {
     const response = await axios.get(`https://api.unsplash.com/photos?page=${page}&per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`);
     return response.data;
@@ -79,11 +81,15 @@ const Main: React.FC = () => {
 
   const fetchSearchedPhotos = async () => {
     if (!query) return fetchPopularPhotos(); // If query is empty, fetch popular photos
+  
     const cachedData = queryClient.getQueryData(['search', query, page]);
     if (cachedData) {
+      // Don't concatenate cached data, return it directly
       return cachedData;
     } else {
       const data = await fetchPhotosByWord(query, page);
+      // Concatenate new photos with existing photos
+      setPhotos(prevPhotos => [...prevPhotos, ...data]);
       // Save searched word in cache
       const searchedWords = queryClient.getQueryData<SearchedWords>('searchedWords') || [];
       if (!searchedWords.includes(query)) {
@@ -94,11 +100,50 @@ const Main: React.FC = () => {
     }
   };
   
+
+  
   
   const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
   const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
   console.log('Searched Words:', searchedWords);
+
+  const fetchMorePhotos = async () => {
+    if (loadingMore) return; // Prevent multiple simultaneous requests
+    setLoadingMore(true);
+    setPage(prevPage => prevPage + 1);
+  };
+
+  const handleScroll = () => {
+    const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+    const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+    const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+
+    if (scrolledToBottom) {
+      fetchMorePhotos();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+
+  useEffect(() => {
+    // Fetch more photos when page changes
+    if (page > 1) {
+      const fetchMore = async () => {
+        const newData = await fetchSearchedPhotos();
+        queryClient.setQueryData(['photos', query, page], newData);
+        setLoadingMore(false);
+      };
+      fetchMore();
+    }
+  }, [page]);
 
     return (
         <MainDiv>
@@ -151,6 +196,7 @@ const Img = styled.img`
     overflow: hidden;
     cursor: pointer;
     transition: all .3s ease-in-out;
+    object-fit: cover;
 
     &:hover {
         transition: all .3s ease-in-out;

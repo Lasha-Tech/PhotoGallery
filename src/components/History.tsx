@@ -26,7 +26,7 @@ const History: React.FC = () => {
         if (cachedData) {
           return cachedData;
         } else {
-            const response = await axios.get<UnsplashResponse>(`https://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
+            const response = await axios.get<UnsplashResponse>(`ttps://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
                 params: {
                   client_id: 'ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0',
                   query: query,
@@ -102,6 +102,7 @@ const Img = styled.img`
     width: 230px;
     border-radius: 8px;
     overflow: hidden;
+    object-fit: cover;
 ` 
 
 const Spinner = styled.div`
