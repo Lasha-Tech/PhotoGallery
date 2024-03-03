@@ -4,20 +4,22 @@ import styled, {css} from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useQueryClient, useQuery } from 'react-query';
 
-interface Photo {
+export interface Photo {
   id: string;
-  url: string;
+  urls: {
+      regular: string;
+  };
 }
+export type SearchedWords = string[];
 interface InputDivProps {
   focused: Boolean;
 }
 
 interface UnsplashResponse {
   results: Photo[];
-
 }
 
-type SearchedWords = string[];
+
 
 
 const Main: React.FC = () => {
@@ -73,7 +75,7 @@ const Main: React.FC = () => {
 
 
   const fetchPopularPhotos = async () => {
-    const cachedData = queryClient.getQueryData(['popular', '', page]);
+    const cachedData: Photo[] = queryClient.getQueryData(['popular', '', page]) || [];
     if (cachedData) {
       setPhotos(cachedData)
       console.log(cachedData)
@@ -89,7 +91,7 @@ const Main: React.FC = () => {
 
   const fetchSearchedPhotos = async () => {
     if (!query) return fetchPopularPhotos(); // If query is empty, fetch popular photos
-    const cachedData = queryClient.getQueryData(['search', query, page]);
+    const cachedData: Photo[] = queryClient.getQueryData(['search', query, page]) || [];
     if (cachedData) {
       setPhotos(cachedData)
       return cachedData;
@@ -130,6 +132,8 @@ const Main: React.FC = () => {
 
   // console.log('Searched Words:', searchedWords);
   // console.log(photos)
+  console.log(data)
+  console.log(searchedWords)
 
     return (
         <MainDiv>

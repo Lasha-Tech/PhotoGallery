@@ -1,15 +1,11 @@
-import styled, {css} from "styled-components";
+import styled from "styled-components";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient, useQuery } from 'react-query';
+import { Photo } from "./Main";
 
-interface Photo {
-    id: string;
-    url: string;
-  }
-  
-  type SearchedWords = string[];
+
   
   interface UnsplashResponse {
     results: Photo[];
@@ -23,12 +19,12 @@ const History: React.FC = () => {
     const [photo, setPhoto] = useState<Photo[]>([]);
 
     const fetchSearchedPhotos = async (query: string, page: number) => {
-        const cachedData = queryClient.getQueryData(['search', query, page]);
+        const cachedData: Photo[] = queryClient.getQueryData(['search', query, page]) || [];
         if (cachedData) {
             setPhoto(cachedData)
           return cachedData;
         } else {
-            const response = await axios.get<UnsplashResponse>(`ttps://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
+            const response = await axios.get<UnsplashResponse>(`https://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
                 params: {
                   client_id: 'ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0',
                   query: query,
@@ -73,7 +69,7 @@ console.log(photos)
     return (
         <MainDiv>
             <Header>
-                <SearchedWords>
+                <SearchWords>
                     ბოლოს მოძებნილი: 
                     {searchedWords.map((word: string, index: number) => (
                     <Chips onClick={() =>  handleChipClick(word)}
@@ -82,7 +78,7 @@ console.log(photos)
                         <svg className='x' width='15' height='15' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
                     </Chips>
                     ))}
-                </SearchedWords>
+                </SearchWords>
 
                 <Link to='/' style={{color: 'inherit', textDecoration: 'none'}}>
                     <PageLink>
@@ -130,26 +126,26 @@ const Img = styled.img`
     object-fit: cover;
 ` 
 
-const Spinner = styled.div`
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: inline-block;
-    border-top: 3px solid #323334;
-    border-right: 3px solid transparent;
-    box-sizing: border-box;
-    animation: rotation 1s linear infinite;
-    margin: 0 auto;
+// const Spinner = styled.div`
+//     width: 48px;
+//     height: 48px;
+//     border-radius: 50%;
+//     display: inline-block;
+//     border-top: 3px solid #323334;
+//     border-right: 3px solid transparent;
+//     box-sizing: border-box;
+//     animation: rotation 1s linear infinite;
+//     margin: 0 auto;
 
-    @keyframes rotation {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
-    } 
-`
+//     @keyframes rotation {
+//         0% {
+//             transform: rotate(0deg);
+//         }
+//         100% {
+//             transform: rotate(360deg);
+//         }
+//     } 
+// `
 
 const Header = styled.div`
     width: 100%;
@@ -179,7 +175,7 @@ const PageLink = styled.div`
     }
 `
 
-const SearchedWords = styled.p`
+const SearchWords = styled.p`
     font-size: 20px;
     font-weight: 700;
     color: #323334;
@@ -246,9 +242,9 @@ const Alert = styled.p`
 }
 `
 
-const ErrorText = styled.p`
-  color: #C62828;
-  font-size: 30px;
-  font-weight: 600;
-  margin: 0 auto;
-`
+// const ErrorText = styled.p`
+//   color: #C62828;
+//   font-size: 30px;
+//   font-weight: 600;
+//   margin: 0 auto;
+// `
