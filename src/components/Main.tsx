@@ -9,18 +9,13 @@ export interface Photo {
   id: string;
   likes: number;
   urls: {
-      regular: string;
-      full: string;
+    regular: string;
+    full: string;
   };
-}
-
-interface InputDivProps {
-  focused: Boolean;
 }
 
 interface UnsplashResponse {
   results: Photo[];
-
 }
 
 type SearchedWords = string[];
@@ -28,10 +23,12 @@ type SearchedWords = string[];
 
 const Main: React.FC = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [focused, setFocused] = useState<Boolean>(false)
+  const [focused, setFocused] = useState<boolean>(false)
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const queryClient = useQueryClient();
+
+  // States For Modal
   const [photoId, setPhotoId] = useState<string>('')
   const [modalRender, setModalRender] = useState<Boolean>(false)
   const [photoUrl, setPhotoUrl] = useState<string>('');
@@ -48,7 +45,7 @@ const Main: React.FC = () => {
     setModalRender(render)
   }
 
-  const fetchPopular = async (page: number) => {
+  const fetchPopular = async (page: number): Promise<Photo[]> => {
     const response = await axios.get(`https://api.unsplash.com/photos?page=${page}&per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`);
     return response.data;
   };
@@ -77,9 +74,9 @@ const Main: React.FC = () => {
 
   const delayedFetchPhotos = debounce((value: string) => {
     setQuery(value);
-  }, 3000);
+  }, 1000);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { value } = event.target;
     delayedFetchPhotos(value);
   };
@@ -236,7 +233,7 @@ const Header = styled.div`
     margin-bottom: 80px;
 `
 
-const InputDiv = styled.div<InputDivProps>(
+const InputDiv = styled.div<{ focused: boolean }>(
     ({focused}) => css`
         width: 400px;
         max-width: 60%;

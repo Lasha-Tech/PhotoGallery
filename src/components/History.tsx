@@ -17,7 +17,9 @@ const History: React.FC = () => {
     const queryClient = useQueryClient();
     const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
     const [photo, setPhoto] = useState<Photo[]>([]);
+    const [activeChip, setActiveChip] = useState<string | null>(null);
 
+    // States For Modal
     const [photoId, setPhotoId] = useState<string>('')
     const [modalRender, setModalRender] = useState<Boolean>(false)
     const [photoUrl, setPhotoUrl] = useState<string>('');
@@ -55,13 +57,14 @@ const History: React.FC = () => {
         }
       };
 
-      const { data: photos } = useQuery(['photos', query, page], () => fetchSearchedPhotos(query, page), {
+      const { data: photos, isLoading, isError } = useQuery<Photo[], Error>(['photos', query, page], () => fetchSearchedPhotos(query, page), {
         enabled: query !== '' && page !== 0
       });
-    
+      console.log(photos) // // // // // // // // // // // // // // // // // // // //
       const handleChipClick = (word: string) => {
         setQuery(word);
         setPage(1);
+        setActiveChip(word)
       };
 
       const handleScroll = () => {
@@ -82,16 +85,16 @@ const History: React.FC = () => {
         };
       }, []);
 
-
-console.log(photos)
+      
     return (
         <MainDiv>
             <Header>
                 <SearchWords>
                     ბოლოს მოძებნილი: 
-                    {searchedWords.map((word: string, index: number) => (
+                    {searchedWords.map((word: string) => (
                     <Chips onClick={() =>  handleChipClick(word)}
-                    key={index}>
+                    isActive={word === activeChip}
+                    key={Math.random()}>
                         {word}
                     </Chips>
                     ))}
@@ -106,15 +109,17 @@ console.log(photos)
 
             <ImgContainer>
             {query? 
-            <>
-            {photo && photo.map((photo: Photo) => (
-            <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`}
-            onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
-            ))}
-            </>:
-            <Alert>აირჩიეთ საძიებო სიტყვა</Alert>
-            }
+              <>
+                {photo && photo.map((photo: Photo) => (
+                  <Img key={Math.random()} src={photo.urls.regular} alt={`Photo ${photo.id}`}
+                  onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
+                ))}
+              </>:
+            <Alert>აირჩიეთ საძიებო სიტყვა</Alert>}
+            
             {emptyCache && <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>}
+            {isError && <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>}
+            {isLoading && <Spinner/>}
             {modalRender && <PhotoModal render={handleModalRender} photoId={photoId} photoLikes={photoLikes} photoUrl={photoUrl}/>}
             </ImgContainer>
         </MainDiv>
@@ -153,26 +158,26 @@ const Img = styled.img`
     }
 ` 
 
-// const Spinner = styled.div`
-//     width: 48px;
-//     height: 48px;
-//     border-radius: 50%;
-//     display: inline-block;
-//     border-top: 3px solid #323334;
-//     border-right: 3px solid transparent;
-//     box-sizing: border-box;
-//     animation: rotation 1s linear infinite;
-//     margin: 0 auto;
+const Spinner = styled.div`
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-block;
+    border-top: 3px solid #323334;
+    border-right: 3px solid transparent;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    margin: 0 auto;
 
-//     @keyframes rotation {
-//         0% {
-//             transform: rotate(0deg);
-//         }
-//         100% {
-//             transform: rotate(360deg);
-//         }
-//     } 
-// `
+    @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    } 
+`
 
 const Header = styled.div`
     width: 100%;
@@ -214,15 +219,14 @@ const SearchWords = styled.p`
     column-gap: 8px;
 `
 
-const Chips = styled.div`
+const Chips = styled.div<{ isActive: boolean }>`
     font-size: 16px;
     font-weight: 500;
     width: fit-content;
     padding: 5px 15px;
-    color: #fff;
-    fill: #fff;
-    background-color: #1079e1;
-    border: 2px solid transparent;
+    background-color: ${props => props.isActive ? '#323334' : '#1079e1'};
+    color: ${props => props.isActive ? '#fff' : '#fff'};
+    border: ${props => props.isActive ? '2px solid #323334' : '2px solid transparent'};
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -232,21 +236,10 @@ const Chips = styled.div`
     transition: all .2s ease;
 
     &:hover {
-        background-color: #fff;
-        border: 2px solid #1079e1;
-        color: #1079e1;
-        fill: #1079e1;
+        background-color: ${props => props.isActive ? '#323334' : '#fff'};
+        border: ${props => props.isActive ? '2px solid #323334' : '2px solid #1079e1'};
+        color: ${props => props.isActive ? '#fff' : '#1079e1'};
     }
- 
-    .x:hover {
-        padding: 2px;
-        background-color: #1079e1;
-        border-radius: 50%;
-        fill: #fff;
-        transform: scale(1.4);
-        transition: transform .1s ease;
-
-    }   
 `
 
 const Alert = styled.p`
@@ -257,15 +250,15 @@ const Alert = styled.p`
     animation: zoom-in-zoom-out 3s ease infinite;
 
     @keyframes zoom-in-zoom-out {
-  0% {
-    transform: scale(1, 1);
-  }
-  50% {
-    transform: scale(1.5, 1.5);
-  }
-  100% {
-    transform: scale(1, 1);
-  }
+    0% {
+      transform: scale(1, 1);
+    }
+    50% {
+      transform: scale(1.5, 1.5);
+    }
+    100% {
+      transform: scale(1, 1);
+    }
 }
 `
 

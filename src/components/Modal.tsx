@@ -122,7 +122,7 @@ const DataDiv = styled.div`
     padding: 40px;
 `
 
-const Data = styled.p`
+const Data = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
