@@ -3,27 +3,26 @@ import axios from 'axios';
 import styled, {css} from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useQueryClient, useQuery } from 'react-query';
-
 export interface Photo {
   id: string;
   urls: {
       regular: string;
   };
 }
-export type SearchedWords = string[];
+
 interface InputDivProps {
   focused: Boolean;
 }
 
 interface UnsplashResponse {
   results: Photo[];
+
 }
 
-
+type SearchedWords = string[];
 
 
 const Main: React.FC = () => {
-  const [photos, setPhotos] = useState<Photo[]>([]);
   const [focused, setFocused] = useState<Boolean>(false)
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
@@ -58,7 +57,6 @@ const Main: React.FC = () => {
 
   const delayedFetchPhotos = debounce((value: string) => {
     setQuery(value);
-    setPage(1);
   }, 3000);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,37 +66,26 @@ const Main: React.FC = () => {
 
   useEffect(() => {
     setPage(1); // Reset page number when query changes
-    setPhotos([]);
-    console.log('casacsascascasscaasccas')
   }, [query]);
 
-
-
   const fetchPopularPhotos = async () => {
-    const cachedData: Photo[] = queryClient.getQueryData(['popular', '', page]) || [];
+    const cachedData = queryClient.getQueryData(['popular', page]);
     if (cachedData) {
-      setPhotos(cachedData)
-      console.log(cachedData)
       return cachedData;
     } else {
       const data = await fetchPopular(page);
-      setPhotos(prev => [...prev, ...data]);
-// console.log(photos)
-      queryClient.setQueryData(['popular', '', page], data);
+      queryClient.setQueryData(['popular', page], data);
       return data;
     }
   };
 
   const fetchSearchedPhotos = async () => {
     if (!query) return fetchPopularPhotos(); // If query is empty, fetch popular photos
-    const cachedData: Photo[] = queryClient.getQueryData(['search', query, page]) || [];
+    const cachedData = queryClient.getQueryData(['search', query, page]);
     if (cachedData) {
-      setPhotos(cachedData)
       return cachedData;
     } else {
       const data = await fetchPhotosByWord(query, page);
-      setPhotos(prev => [...prev, ...data]);
-      console.log(photos)
       // Save searched word in cache
       const searchedWords = queryClient.getQueryData<SearchedWords>('searchedWords') || [];
       if (!searchedWords.includes(query)) {
@@ -109,31 +96,11 @@ const Main: React.FC = () => {
     }
   };
   
-  const handleScroll = () => {
-    const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
-    const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
-    const clientHeight = document.documentElement.clientHeight || window.innerHeight;
-    const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
-
-    if (scrolledToBottom) {
-      setPage(prevPage => prevPage + 1)
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
   
   const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
   const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
-  // console.log('Searched Words:', searchedWords);
-  // console.log(photos)
-  console.log(data)
-  console.log(searchedWords)
+  console.log('Searched Words:', searchedWords);
 
     return (
         <MainDiv>
@@ -154,7 +121,7 @@ const Main: React.FC = () => {
             </Header>
 
             <ImgContainer>
-              {photos && photos.map((photo: Photo) => (
+              {data && data.map((photo: Photo) => (
               <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`} />
               ))}
               {isLoading && <Spinner/>}
