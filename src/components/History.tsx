@@ -20,10 +20,12 @@ const History: React.FC = () => {
     const [page, setPage] = useState<number>(1);
     const queryClient = useQueryClient();
     const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
+    const [photo, setPhoto] = useState<Photo[]>([]);
 
     const fetchSearchedPhotos = async (query: string, page: number) => {
         const cachedData = queryClient.getQueryData(['search', query, page]);
         if (cachedData) {
+            setPhoto(cachedData)
           return cachedData;
         } else {
             const response = await axios.get<UnsplashResponse>(`ttps://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
@@ -32,6 +34,7 @@ const History: React.FC = () => {
                   query: query,
                 },
               });
+              setPhoto(prev => [...prev, ...response.data.results]);
               queryClient.setQueryData(['search', query, page], response.data.results);
 
           return response.data.results;
@@ -46,6 +49,26 @@ const History: React.FC = () => {
         setQuery(word);
         setPage(1);
       };
+
+      const handleScroll = () => {
+        const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+        const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+        const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+    
+        if (scrolledToBottom && photo) {
+          setPage(prevPage => prevPage + 1)
+        }
+      };
+    
+      useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+          window.removeEventListener('scroll', handleScroll);
+        };
+      }, []);
+
+
 console.log(photos)
     return (
         <MainDiv>
@@ -71,7 +94,7 @@ console.log(photos)
             <ImgContainer>
             {query? 
             <>
-            {photos && photos.map((photo: Photo) => (
+            {photo && photo.map((photo: Photo) => (
             <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`} />
             ))}
             </>:
@@ -86,6 +109,8 @@ export default History;
 
 const MainDiv = styled.div`
     width: 70%;
+    position: relative;
+    z-index: 1;
 `
 
 const ImgContainer = styled.div`
@@ -221,3 +246,9 @@ const Alert = styled.p`
 }
 `
 
+const ErrorText = styled.p`
+  color: #C62828;
+  font-size: 30px;
+  font-weight: 600;
+  margin: 0 auto;
+`

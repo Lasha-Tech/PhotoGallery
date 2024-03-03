@@ -21,13 +21,12 @@ type SearchedWords = string[];
 
 
 const Main: React.FC = () => {
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [focused, setFocused] = useState<Boolean>(false)
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const queryClient = useQueryClient();
-  const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [photos, setPhotos] = useState<Photo[]>([]);
-
+  
   const fetchPopular = async (page: number) => {
     const response = await axios.get(`https://api.unsplash.com/photos?page=${page}&per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`);
     return response.data;
@@ -57,6 +56,7 @@ const Main: React.FC = () => {
 
   const delayedFetchPhotos = debounce((value: string) => {
     setQuery(value);
+    setPage(1);
   }, 3000);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,30 +66,37 @@ const Main: React.FC = () => {
 
   useEffect(() => {
     setPage(1); // Reset page number when query changes
+    setPhotos([]);
+    console.log('casacsascascasscaasccas')
   }, [query]);
 
+
+
   const fetchPopularPhotos = async () => {
-    const cachedData = queryClient.getQueryData(['popular', page]);
+    const cachedData = queryClient.getQueryData(['popular', '', page]);
     if (cachedData) {
+      setPhotos(cachedData)
+      console.log(cachedData)
       return cachedData;
     } else {
       const data = await fetchPopular(page);
-      queryClient.setQueryData(['popular', page], data);
+      setPhotos(prev => [...prev, ...data]);
+// console.log(photos)
+      queryClient.setQueryData(['popular', '', page], data);
       return data;
     }
   };
 
   const fetchSearchedPhotos = async () => {
     if (!query) return fetchPopularPhotos(); // If query is empty, fetch popular photos
-  
     const cachedData = queryClient.getQueryData(['search', query, page]);
     if (cachedData) {
-      // Don't concatenate cached data, return it directly
+      setPhotos(cachedData)
       return cachedData;
     } else {
       const data = await fetchPhotosByWord(query, page);
-      // Concatenate new photos with existing photos
-      setPhotos(prevPhotos => [...prevPhotos, ...data]);
+      setPhotos(prev => [...prev, ...data]);
+      console.log(photos)
       // Save searched word in cache
       const searchedWords = queryClient.getQueryData<SearchedWords>('searchedWords') || [];
       if (!searchedWords.includes(query)) {
@@ -100,20 +107,6 @@ const Main: React.FC = () => {
     }
   };
   
-
-  
-  
-  const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
-  const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
-
-  console.log('Searched Words:', searchedWords);
-
-  const fetchMorePhotos = async () => {
-    if (loadingMore) return; // Prevent multiple simultaneous requests
-    setLoadingMore(true);
-    setPage(prevPage => prevPage + 1);
-  };
-
   const handleScroll = () => {
     const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
     const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
@@ -121,7 +114,7 @@ const Main: React.FC = () => {
     const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
 
     if (scrolledToBottom) {
-      fetchMorePhotos();
+      setPage(prevPage => prevPage + 1)
     }
   };
 
@@ -131,19 +124,12 @@ const Main: React.FC = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+  
+  const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
+  const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
-
-  useEffect(() => {
-    // Fetch more photos when page changes
-    if (page > 1) {
-      const fetchMore = async () => {
-        const newData = await fetchSearchedPhotos();
-        queryClient.setQueryData(['photos', query, page], newData);
-        setLoadingMore(false);
-      };
-      fetchMore();
-    }
-  }, [page]);
+  // console.log('Searched Words:', searchedWords);
+  // console.log(photos)
 
     return (
         <MainDiv>
@@ -164,7 +150,7 @@ const Main: React.FC = () => {
             </Header>
 
             <ImgContainer>
-              {data && data.map((photo: Photo) => (
+              {photos && photos.map((photo: Photo) => (
               <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`} />
               ))}
               {isLoading && <Spinner/>}
@@ -196,7 +182,6 @@ const Img = styled.img`
     overflow: hidden;
     cursor: pointer;
     transition: all .3s ease-in-out;
-    object-fit: cover;
 
     &:hover {
         transition: all .3s ease-in-out;
