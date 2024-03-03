@@ -23,6 +23,7 @@ type SearchedWords = string[];
 
 
 const Main: React.FC = () => {
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [focused, setFocused] = useState<Boolean>(false)
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
@@ -66,14 +67,18 @@ const Main: React.FC = () => {
 
   useEffect(() => {
     setPage(1); // Reset page number when query changes
+    setPhotos([]);
   }, [query]);
 
   const fetchPopularPhotos = async () => {
-    const cachedData = queryClient.getQueryData(['popular', page]);
+    const cachedData: Photo[] = queryClient.getQueryData(['popular', page]) as Photo[];
+
     if (cachedData) {
+      setPhotos(cachedData)
       return cachedData;
     } else {
       const data = await fetchPopular(page);
+      setPhotos(prev => [...prev, ...data]);
       queryClient.setQueryData(['popular', page], data);
       return data;
     }
@@ -81,11 +86,13 @@ const Main: React.FC = () => {
 
   const fetchSearchedPhotos = async () => {
     if (!query) return fetchPopularPhotos(); // If query is empty, fetch popular photos
-    const cachedData = queryClient.getQueryData(['search', query, page]);
+    const cachedData: Photo[] = queryClient.getQueryData<Photo[]>(['search', query, page]) as Photo[];
     if (cachedData) {
+      setPhotos(cachedData)
       return cachedData;
     } else {
       const data = await fetchPhotosByWord(query, page);
+      setPhotos(prev => [...prev, ...data]);
       // Save searched word in cache
       const searchedWords = queryClient.getQueryData<SearchedWords>('searchedWords') || [];
       if (!searchedWords.includes(query)) {
@@ -96,12 +103,29 @@ const Main: React.FC = () => {
     }
   };
   
+  const handleScroll = () => {
+    const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+    const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+    const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+
+    if (scrolledToBottom) {
+      setPage(prevPage => prevPage + 1)
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
   
   const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
   const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
   console.log('Searched Words:', searchedWords);
-
+console.log(data)
     return (
         <MainDiv>
             <Header>
@@ -121,7 +145,7 @@ const Main: React.FC = () => {
             </Header>
 
             <ImgContainer>
-              {data && data.map((photo: Photo) => (
+              {photos && photos.map((photo: Photo) => (
               <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`} />
               ))}
               {isLoading && <Spinner/>}
