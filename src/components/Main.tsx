@@ -3,10 +3,14 @@ import axios from 'axios';
 import styled, {css} from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useQueryClient, useQuery } from 'react-query';
+import PhotoModal from './Modal';
+
 export interface Photo {
   id: string;
+  likes: number;
   urls: {
       regular: string;
+      full: string;
   };
 }
 
@@ -28,7 +32,22 @@ const Main: React.FC = () => {
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const queryClient = useQueryClient();
-  
+  const [photoId, setPhotoId] = useState<string>('')
+  const [modalRender, setModalRender] = useState<Boolean>(false)
+  const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [photoLikes, setPhotoLikes] = useState<number>(0)
+
+  const handlePhotoClick = (photoId: string, url: string, likes: number) => {
+    setPhotoId(photoId)
+    setPhotoUrl(url)
+    setPhotoLikes(likes)
+    setModalRender(true)
+  }
+
+  const handleModalRender = (render: Boolean) => {
+    setModalRender(render)
+  }
+
   const fetchPopular = async (page: number) => {
     const response = await axios.get(`https://api.unsplash.com/photos?page=${page}&per_page=20&order_by=popular&client_id=ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0`);
     return response.data;
@@ -125,7 +144,7 @@ const Main: React.FC = () => {
   const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
   console.log('Searched Words:', searchedWords);
-console.log(data)
+  console.log(data)
     return (
         <MainDiv>
             <Header>
@@ -146,11 +165,14 @@ console.log(data)
 
             <ImgContainer>
               {photos && photos.map((photo: Photo) => (
-              <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`} />
+              <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`}
+              onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
               ))}
               {isLoading && <Spinner/>}
               {isError && <ErrorText>ფოტო ვერ მოიძებნა  :(</ErrorText>}
             </ImgContainer>
+
+            {modalRender && <PhotoModal render={handleModalRender} photoId={photoId} photoLikes={photoLikes} photoUrl={photoUrl}/>}
         </MainDiv>
     );
 }
@@ -177,6 +199,7 @@ const Img = styled.img`
     overflow: hidden;
     cursor: pointer;
     transition: all .3s ease-in-out;
+    object-fit: cover;
 
     &:hover {
         transition: all .3s ease-in-out;
