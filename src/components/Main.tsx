@@ -26,8 +26,9 @@ const Main: React.FC = () => {
   const [focused, setFocused] = useState<boolean>(false)
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
+  const [error, setError] = useState<boolean>(false);
   const queryClient = useQueryClient();
-
+  
   // States For Modal
   const [photoId, setPhotoId] = useState<string>('')
   const [modalRender, setModalRender] = useState<Boolean>(false)
@@ -140,6 +141,16 @@ const Main: React.FC = () => {
   const { data, isLoading, isError } = useQuery(['photos', query, page], fetchSearchedPhotos);
   const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
 
+  useEffect(() => {
+    if(!isLoading) {
+      if(photos.length === 0 || isError) {
+        setError(true)
+      }
+    } else {
+      setError(false)
+    }
+  }, [isError, isLoading, photos])
+
   console.log('Searched Words:', searchedWords);
   console.log(data)
     return (
@@ -166,7 +177,7 @@ const Main: React.FC = () => {
               onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
               ))}
               {isLoading && <Spinner/>}
-              {isError && <ErrorText>ფოტო ვერ მოიძებნა  :(</ErrorText>}
+              {error && <ErrorText>ფოტო ვერ მოიძებნა  :(</ErrorText>}
             </ImgContainer>
 
             {modalRender && <PhotoModal render={handleModalRender} photoId={photoId} photoLikes={photoLikes} photoUrl={photoUrl}/>}

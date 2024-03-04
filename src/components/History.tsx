@@ -12,7 +12,6 @@ interface UnsplashResponse {
 
 const History: React.FC = () => {
     const [query, setQuery] = useState<string>('');
-    const [emptyCache, setEmptyCache] = useState<Boolean>(false)
     const [page, setPage] = useState<number>(1);
     const queryClient = useQueryClient();
     const searchedWords = queryClient.getQueryData<string[]>('searchedWords') || [];
@@ -40,10 +39,8 @@ const History: React.FC = () => {
         const cachedData: Photo[] = queryClient.getQueryData<Photo[]>(['search', query, page]) as Photo[];
         if (cachedData) {
           setPhoto(cachedData)
-          setEmptyCache(true)
           return cachedData;
         } else {
-            setEmptyCache(false)
             const response = await axios.get<UnsplashResponse>(`https://api.unsplash.com/search/photos?&page=${page}&per_page=20`, {
                 params: {
                   client_id: 'ihpsdWQhpiIDTs7vDnAerKG89tbc2P77dGvAN9PiZk0',
@@ -85,7 +82,7 @@ const History: React.FC = () => {
         };
       }, []);
 
-      
+
     return (
         <MainDiv>
             <Header>
@@ -117,7 +114,7 @@ const History: React.FC = () => {
               </>:
             <Alert>აირჩიეთ საძიებო სიტყვა</Alert>}
             
-            {emptyCache && <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>}
+            {query && photo.length === 0? <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>: null}
             {isError && <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>}
             {isLoading && <Spinner/>}
             {modalRender && <PhotoModal render={handleModalRender} photoId={photoId} photoLikes={photoLikes} photoUrl={photoUrl}/>}
