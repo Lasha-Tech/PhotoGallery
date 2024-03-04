@@ -138,6 +138,10 @@ const ImgContainer = styled.div`
     gap: 25px;
     align-items: flex-start;
     justify-content: space-between;
+
+    @media (max-width: 700px) {
+      justify-content: center;
+    }
 `
 
 const Img = styled.img`
@@ -152,6 +156,11 @@ const Img = styled.img`
     &:hover {
         transition: all .3s ease-in-out;
         transform: scale(1.1);
+    }
+
+    @media (max-width: 400px) {
+      height: 200px;
+      width: 130px;
     }
 ` 
 
@@ -182,6 +191,12 @@ const Header = styled.div`
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 80px;
+
+    @media (max-width: 880px) {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+      gap: 30px;
+    }
 `
 
 const PageLink = styled.div`
@@ -202,6 +217,12 @@ const PageLink = styled.div`
         background-color: #fff;
         border: 2px solid #323334;
     }
+
+    @media (max-width: 650px) {
+      height: 40px;
+      font-size: 16px;
+      padding: 10px 25px;
+    }
 `
 
 const SearchWords = styled.p`
@@ -214,6 +235,10 @@ const SearchWords = styled.p`
     flex-wrap: wrap;
     row-gap: 5px;
     column-gap: 8px;
+
+    @media(max-width: 880px) {
+      width: 100%;
+    }
 `
 
 const Chips = styled.div<{ isActive: boolean }>`
@@ -231,6 +256,8 @@ const Chips = styled.div<{ isActive: boolean }>`
     gap: 5px;
     cursor: pointer;
     transition: all .2s ease;
+    word-wrap: break-word;
+    word-break: break-all;
 
     &:hover {
         background-color: ${props => props.isActive ? '#323334' : '#fff'};
@@ -247,16 +274,24 @@ const Alert = styled.p`
     animation: zoom-in-zoom-out 3s ease infinite;
 
     @keyframes zoom-in-zoom-out {
-    0% {
-      transform: scale(1, 1);
+      0% {
+        transform: scale(1, 1);
+      }
+      50% {
+        transform: scale(1.5, 1.5);
+      }
+      100% {
+        transform: scale(1, 1);
+      }
     }
-    50% {
-      transform: scale(1.5, 1.5);
+
+    @media(max-width: 730px) {
+      font-size: 25px;
     }
-    100% {
-      transform: scale(1, 1);
+
+    @media(max-width: 555px) {
+      font-size: 20px;
     }
-}
 `
 
 const ErrorText = styled.p`

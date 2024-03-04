@@ -198,6 +198,10 @@ const ImgContainer = styled.div`
     gap: 25px;
     align-items: flex-start;
     justify-content: space-between;
+
+    @media (max-width: 700px) {
+      justify-content: center;
+    }
 `
 
 const Img = styled.img`
@@ -212,6 +216,11 @@ const Img = styled.img`
     &:hover {
         transition: all .3s ease-in-out;
         transform: scale(1.1);
+    }
+
+    @media (max-width: 400px) {
+      height: 200px;
+      width: 130px;
     }
 ` 
 
@@ -242,6 +251,12 @@ const Header = styled.div`
     align-items: center;
     justify-content: space-between;
     margin-bottom: 80px;
+
+    @media (max-width: 650px) {
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
 `
 
 const InputDiv = styled.div<{ focused: boolean }>(
@@ -265,6 +280,12 @@ const InputDiv = styled.div<{ focused: boolean }>(
             transition: all .3s ease-in-out;
             background-color: ${focused? '#323334': '#4b6781'};
         }
+
+      @media (max-width: 650px) {
+        max-width: 100%;
+        height: 40px;
+        font-size: 16px;
+      }
     `
 )
 
@@ -303,6 +324,12 @@ const PageLink = styled.div`
         color: #323334;
         background-color: #fff;
         border: 2px solid #323334;
+    }
+
+    @media (max-width: 650px) {
+      height: 40px;
+      font-size: 16px;
+      padding: 10px 25px;
     }
 `
 

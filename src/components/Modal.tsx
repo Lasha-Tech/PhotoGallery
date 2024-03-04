@@ -105,6 +105,14 @@ const PhotoDiv = styled.div`
     display: flex;
     background-color: #fff;
     border-radius: 8px;
+
+    @media (max-width: 1100px) {
+        width: 70%;
+    }
+
+    @media (max-width: 550px) {
+        width: 85%;
+    }
 `
 
 const Img = styled.img`
@@ -113,6 +121,11 @@ const Img = styled.img`
     border-radius: 8px;
     overflow: hidden;
     object-fit: cover;
+
+    @media (max-width: 450px) {
+        height: 350px;
+        width: 280px;
+    }
 ` 
 
 const DataDiv = styled.div`
@@ -120,6 +133,11 @@ const DataDiv = styled.div`
     flex-direction: column;
     gap: 30px;
     padding: 40px;
+
+    @media (max-width: 950px) {
+        padding: 20px;
+        gap: 15px;
+    }
 `
 
 const Data = styled.div`
@@ -129,10 +147,29 @@ const Data = styled.div`
     font-size: 25px;
     color: #323334;
     font-weight: 600;
+
+    @media (max-width: 950px) {
+        font-size: 20px;
+        gap: 4px;
+    }
+
+    @media (max-width: 820px) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    @media (max-width: 550px) {
+        font-size: 16px;
+    }
 `
 
 const Count = styled.p`
     font-size: 25px;
     color: #03a9f4;
     font-weight: 700;
+
+    @media (max-width: 550px) {
+        font-weight: 600;
+        font-size: 18px;
+    }
 `
