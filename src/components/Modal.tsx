@@ -14,10 +14,22 @@ interface PhotoStatistics {
     views: { total: number };
 }
 
+interface ModalProps {
+    isOpening: boolean;
+}
+
 const PhotoModal: React.FC<PhotoModalProps> = ({render, photoId, photoUrl, photoLikes}) => {
     const [photoDownloads, setPhotoDownloads] = useState<number>(0);
     const [photoViews, setPhotoViews] = useState<number>(0);
     const photoDivRef = useRef<HTMLDivElement>(null);
+    const [isOpening, setIsOpening] = useState<boolean>(true);
+    
+    const handleClose = () => {
+        setIsOpening(false);
+        setTimeout(() => {
+            render(false); 
+        }, 500);
+    };
 
     const fetchPhoto = async () => {
         try {
@@ -36,29 +48,24 @@ const PhotoModal: React.FC<PhotoModalProps> = ({render, photoId, photoUrl, photo
 
     useEffect(() => {
         fetchPhoto();
-
         const handleClickOutside = (event: MouseEvent) => {
             if (photoDivRef.current && !photoDivRef.current.contains(event.target as Node)) {
-                render(false);
+                handleClose();
             }
         };
 
-        // Disable scrolling on the body element when the modal is open
         document.body.style.overflow = 'hidden';
-
         document.addEventListener("mousedown", handleClickOutside);
 
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
-
-            // Re-enable scrolling when the modal is closed
             document.body.style.overflow = '';
         };
     }, [render]);
 
-    
+
     return (
-        <Modal>
+        <Modal isOpening={isOpening}>
             <PhotoDiv ref={photoDivRef}>
                 <Img src={photoUrl}/>
                 <DataDiv>
@@ -87,7 +94,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({render, photoId, photoUrl, photo
  
 export default PhotoModal;
 
-const Modal = styled.div`
+const Modal = styled.div<ModalProps>`
     position: fixed;
     top: 0;
     left: 0;
@@ -99,6 +106,29 @@ const Modal = styled.div`
     justify-content: center;
     z-index: 10;
     background-color: rgba(251, 251, 251, 0.3);
+    animation: ${props => props.isOpening ? 'blowUp' : 'shrinkDown'} 0.5s ease;
+
+    @keyframes blowUp {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes shrinkDown {
+        from {
+            transform: scale(1);
+            opacity: 1;
+        }
+        to {
+            transform: scale(0);
+            opacity: 0;
+        }
+    }
 `
 
 const PhotoDiv = styled.div`

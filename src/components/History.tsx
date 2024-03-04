@@ -57,6 +57,7 @@ const History: React.FC = () => {
       const { data: photos, isLoading, isError } = useQuery<Photo[], Error>(['photos', query, page], () => fetchSearchedPhotos(query, page), {
         enabled: query !== '' && page !== 0
       });
+      
       console.log(photos) // // // // // // // // // // // // // // // // // // // //
       const handleChipClick = (word: string) => {
         setQuery(word);
@@ -105,20 +106,20 @@ const History: React.FC = () => {
             </Header>
 
             <ImgContainer>
-            {query? 
-              <>
-                {photo && photo.map((photo: Photo) => (
-                  <Img key={Math.random()} src={photo.urls.regular} alt={`Photo ${photo.id}`}
-                  onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
-                ))}
-              </>:
-            <Alert>აირჩიეთ საძიებო სიტყვა</Alert>}
-            
+              {query? 
+                <>
+                  {photo && photo.map((photo: Photo) => (
+                    <Img key={Math.random()} src={photo.urls.regular} alt={`Photo ${photo.id}`}
+                    onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
+                  ))}
+                </>:
+              <Alert>აირჩიეთ საძიებო სიტყვა</Alert>}
+            </ImgContainer>
+
             {query && photo.length === 0? <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>: null}
             {isError && <ErrorText>ფოტო ვერ მოიძებნა :(</ErrorText>}
             {isLoading && <Spinner/>}
             {modalRender && <PhotoModal render={handleModalRender} photoId={photoId} photoLikes={photoLikes} photoUrl={photoUrl}/>}
-            </ImgContainer>
         </MainDiv>
     );
 }
@@ -129,6 +130,9 @@ const MainDiv = styled.div`
     width: 70%;
     position: relative;
     z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 `
 
 const ImgContainer = styled.div`

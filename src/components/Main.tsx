@@ -83,7 +83,7 @@ const Main: React.FC = () => {
   };
 
   useEffect(() => {
-    setPage(1); // Reset page number when query changes
+    setPage(1);
     setPhotos([]);
   }, [query]);
 
@@ -110,6 +110,7 @@ const Main: React.FC = () => {
     } else {
       const data = await fetchPhotosByWord(query, page);
       setPhotos(prev => [...prev, ...data]);
+
       // Save searched word in cache
       const searchedWords = queryClient.getQueryData<SearchedWords>('searchedWords') || [];
       if (!searchedWords.includes(query)) {
@@ -153,6 +154,7 @@ const Main: React.FC = () => {
 
   console.log('Searched Words:', searchedWords);
   console.log(data)
+  
     return (
         <MainDiv>
             <Header>
@@ -176,10 +178,10 @@ const Main: React.FC = () => {
               <Img key={photo.id} src={photo.urls.regular} alt={`Photo ${photo.id}`}
               onClick={() => handlePhotoClick(photo.id, photo.urls.full, photo.likes)}/>
               ))}
-              {isLoading && <Spinner/>}
-              {error && <ErrorText>ფოტო ვერ მოიძებნა  :(</ErrorText>}
             </ImgContainer>
-
+            
+            {isLoading && <Spinner/>}
+            {error && <ErrorText>ფოტო ვერ მოიძებნა  :(</ErrorText>}
             {modalRender && <PhotoModal render={handleModalRender} photoId={photoId} photoLikes={photoLikes} photoUrl={photoUrl}/>}
         </MainDiv>
     );
@@ -189,6 +191,9 @@ export default Main;
 
 const MainDiv = styled.div`
     width: 70%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 `
 
 const ImgContainer = styled.div`
